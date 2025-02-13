@@ -45,4 +45,55 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function notifications()
+    {
+        return $this->belongsToMany(Notification::class, 'notification_user')
+            ->withPivot('read_at')
+            ->withTimestamps()
+            ->with('category:id,name,color');
+    }
+    
+    public function unreadNotifications()
+    {
+        return $this->notifications()
+            ->whereNull('notification_user.read_at')
+            ->whereHas('category', function($query) {
+                $query->where('is_active', true);
+            });
+    }
+
+    public function notificationPreferences()
+    {
+        return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function isNotificationCategoryHidden(string $category)
+    {
+        return $this->notificationPreferences()
+            ->where('category', $category)
+            ->where('is_hidden', true)
+            ->exists();
+    }
+
+    public function toggleNotificationCategory(string $category)
+    {
+        $preference = $this->notificationPreferences()
+            ->firstOrCreate(
+                ['category' => $category],
+                ['is_hidden' => true]
+            );
+
+        $preference->is_hidden = !$preference->is_hidden;
+        $preference->save();
+
+        return $preference->is_hidden;
+    }
+
+    public function getHiddenNotificationCategories()
+    {
+        return $this->notificationPreferences()
+            ->where('is_hidden', true)
+            ->pluck('category');
+    }
 }
