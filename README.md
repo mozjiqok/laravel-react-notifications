@@ -6,10 +6,14 @@
 - [TailwindCSS](https://tailwindcss.com/)
 - [Inertia](https://inertiajs.com/)
 - [Ziggy](https://tightenco.com/ziggy/)
+- [Vite](https://vitejs.dev/)
 
 ## Установка
 ```bash
 composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate 
 npm install && npm run build
 composer run dev
 ```
